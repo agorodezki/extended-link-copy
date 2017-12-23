@@ -38,11 +38,11 @@ function sendToBackground() {
 
 function renderOptions() {
     document.getElementById('list-table').innerHTML =
-        `<tr align="left">
-            <th>Title</th>
-            <th>RegEx</th>
-            <th></th>
-         </tr>`;
+        '<tr align="left">' +
+            '<th>Title</th>' +
+            '<th>RegEx</th>' +
+            '<th></th>' +
+        '</tr>';
 
     for (const [index, item] of Object.entries(settings)) {
         addListNode(index, item);
@@ -52,19 +52,29 @@ function renderOptions() {
 }
 
 function addListNode(index, data) {
-    const newNode = document.createElement('tr');
+    const tableRow = document.createElement('tr');
+
+    tableRow.innerHTML =
+        '<td><input name="title" type="text"></td>' +
+        '<td><input name="regex" type="text"></td>' +
+        '<td><button name="remove" type="submit">X</button></td>';
+
+    const inputTitle = tableRow.querySelector('[name=title]');
+    const inputRegex = tableRow.querySelector('[name=regex]');
+    const removeButton = tableRow.querySelector('[name=remove]');
+
+    inputTitle.setAttribute('name', 'title-' + index);
+    inputRegex.setAttribute('name', 'regex-' + index);
+    removeButton.setAttribute('name', index);
+
     if (data) {
-        newNode.innerHTML =
-            `<td><input name="title-${index}" type="text" value="${data.title || ''}"></td>
-             <td><input name="regex-${index}" type="text" value="${data.regex || ''}"></td>
-             <td><button name="${index}" type="submit">X</button></td>`;
+        inputTitle.setAttribute('value', data.title || '');
+        inputRegex.setAttribute('value', data.regex || '');
     } else {
-        newNode.innerHTML =
-            `<td><input name="title-${index}" type="text" value=""></td>
-             <td><input name="regex-${index}" type="text" value=""></td>
-             <td></td>`;
+        removeButton.remove();
     }
-    document.getElementById('list-table').appendChild(newNode);
+
+    document.getElementById('list-table').appendChild(tableRow);
 }
 
 function handleListSubmit(e) {
