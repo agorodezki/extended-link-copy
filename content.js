@@ -2,14 +2,14 @@
 
 const br = typeof(browser) === 'undefined' ? chrome : browser;
 
-br.runtime.onMessage.addListener((message) => {
+br.runtime.onMessage.addListener((request) => {
     function onCopy(e) {
         document.removeEventListener('copy', onCopy, true);
 
         e.stopImmediatePropagation();
         e.preventDefault();
 
-        e.clipboardData.setData('text/plain', message.data);
+        e.clipboardData.setData('text/plain', request.data);
     }
 
     document.addEventListener('copy', onCopy, true);

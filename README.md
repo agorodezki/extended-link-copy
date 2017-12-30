@@ -12,5 +12,5 @@ Use regular expressions to get a part of the href copied to clipboard.
 ```(.*:\/\/.*?)(\?|$)```
 
 ##### Copy just the attributes
-```.*:\/\/.*?(\?|$)(.*)```
+```\?(.*)```
 
