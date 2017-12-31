@@ -35,8 +35,12 @@ function createOptions() {
 function getRegexResult(data) {
     let newRegex;
     try { newRegex = new RegExp(data.regexSet.regex) }
-    catch(e) { return false }
+    catch(e) { return '' }
     const regexResult = newRegex.exec(data.linkUrl);
+
+    if (data.regexSet.compose === '') {
+        return regexResult[0];
+    }
 
     let composeArray = data.regexSet.compose.split(/(\$\{\d+\})/);
 

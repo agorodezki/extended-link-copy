@@ -120,9 +120,7 @@ function getTestResult() {
     };
 
     br.runtime.sendMessage(data).then((response) => {
-        if (response) {
-            document.getElementById('test-result').innerText = response;
-        }
+        document.getElementById('test-result').innerText = response;
     });
 }
 
