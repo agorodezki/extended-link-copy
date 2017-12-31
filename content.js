@@ -9,7 +9,7 @@ br.runtime.onMessage.addListener((request) => {
         e.stopImmediatePropagation();
         e.preventDefault();
 
-        e.clipboardData.setData('text/plain', request.data);
+        e.clipboardData.setData('text/plain', request);
     }
 
     document.addEventListener('copy', onCopy, true);
