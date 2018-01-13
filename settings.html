@@ -8,9 +8,34 @@
 <body>
     <h2>Extended Link Copy Settings</h2>
     <h3>Plugin for Firefox and Chrome to copy parts of links to the clipboard.</h3>
+    <ul>
+        <li><strong>Title: </strong>Choose a title for your entry</li>
+        <li>
+            <strong>Regex: </strong>
+            A regex that describes the part of a href in Javascript notation. See
+            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp">here.</a>
+        </li>
+        <li>
+            <strong>Compose: </strong>
+            If you have set capturing groups in your regex you can access them with ${n} in this field.
+            The n stands for a number greater 0. With ${0} you get the hole match of the regex.
+            With ${1} you get the content of the first capturing group, with ${2} the content of the second, and so on.
+            Everything else you're writing to this field would be assumed to the resulting string.
+            If you leave this field empty the hole match of the regex would be assumed to the resulting string.
+            See examples below or <a href="https://github.com/agorodezki/extended-link-copy">on Github.</a>
+            If you can't see examples below click on 'reset to factory defaults'.
+        </li>
+    </ul>
+    <p>Every changes made to the settings have to be saved, even deleted items. If you made changes that shouldn't be
+        saved or accidentally clicked the reset button just reload the settings page.</p>
+    <p>Options in the settings list can be accessed under its title in the context menu of every hyperlink.
+        If you have entered more then one option, they're grouped under 'Extended Link Copy'.</p>
+
+    <h3>Settings List:</h3>
     <form id="list">
         <table id="list-table"></table>
         <button name="save" type="submit">Save</button>
+        <button name="reset" type="submit">Reset to factory defaults!</button>
     </form>
 
     <h3>Test area ... test out your expressions :)</h3>

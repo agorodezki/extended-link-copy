@@ -2,13 +2,35 @@
 
 const br = typeof(browser) === 'undefined' ? chrome : browser;
 
-let settings = [
-    // {
-    //     title: 'Copy OXID',
-    //     regex: 'javascript:top\.oxid\.admin\.editThis\(\'(.*)\'\)'
-    //     compose: '${1}'
-    // }
+const examples = [
+    {
+        title: 'Copy just the domain',
+        regex: '.*:\\/\\/.*?\\/',
+        compose: ''
+    },
+    {
+        title: 'Copy url without attributes',
+        regex: '(.*:\\/\\/.*?)(\\?|$)',
+        compose: '${1}'
+    },
+    {
+        title: 'Copy just the attributes',
+        regex: '\\?(.*)',
+        compose: '${1}'
+    },
+    {
+        title: 'Copy revised hyperlink',
+        regex: '(.*:\\/\\/.*?\\/).*',
+        compose: '<a href="${0}">${1}</a>'
+    },
+    {
+        title: 'Copy OXID',
+        regex: 'javascript:top\\.oxid\\.admin\\.editThis\\(\\\'(.*)\\\'\\)',
+        compose: '${1}'
+    }
 ];
+
+let settings = [];
 
 function saveOptions() {
     br.storage.local.set({ settings });
@@ -17,13 +39,12 @@ function saveOptions() {
 
 function removeOption(index) {
     settings.splice(index, 1);
-    saveOptions();
 }
 
 function restoreOptions() {
     br.storage.local.get('settings').then(
         (result) => {
-            settings = result.settings || [];
+            settings = result.settings || JSON.parse(JSON.stringify(examples));
             renderOptions();
             sendToBackground();
         },
@@ -31,6 +52,10 @@ function restoreOptions() {
             console.log(error);
         }
     );
+}
+
+function resetToFactory() {
+    settings = JSON.parse(JSON.stringify(examples));
 }
 
 function sendToBackground() {
@@ -91,7 +116,9 @@ function handleListSubmit(e) {
     e.preventDefault();
 
     if (e.explicitOriginalTarget.name === 'save') {
-        saveOptions(true);
+        saveOptions();
+    } else if (e.explicitOriginalTarget.name === 'reset') {
+        resetToFactory();
     } else if (e.explicitOriginalTarget.name !== '') {
         removeOption(e.explicitOriginalTarget.name);
     }
