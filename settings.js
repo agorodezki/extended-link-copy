@@ -32,37 +32,17 @@ const examples = [
 
 let settings = [];
 
-function saveOptions() {
-    br.storage.local.set({ settings });
-    sendToBackground();
-}
-
-function removeOption(index) {
-    settings.splice(index, 1);
-}
-
 function restoreOptions() {
-    br.storage.local.get('settings').then(
-        (result) => {
-            settings = result.settings || JSON.parse(JSON.stringify(examples));
-            renderOptions();
-            sendToBackground();
-        },
-        (error) => {
-            console.log(error);
-        }
-    );
+    if (br === chrome) {
+        chrome.storage.local.get('settings', getSettings);
+    } else if (br === browser) {
+        browser.storage.local.get('settings').then(getSettings);
+    }
 }
 
-function resetToFactory() {
-    settings = JSON.parse(JSON.stringify(examples));
-}
-
-function sendToBackground() {
-    browser.runtime.sendMessage({
-        command: 'setting',
-        settings: settings
-    });
+function getSettings(result) {
+    settings = result.settings || JSON.parse(JSON.stringify(examples));
+    renderOptions();
 }
 
 function renderOptions() {
@@ -88,7 +68,7 @@ function addListNode(index, data) {
         '<td><input name="title" type="text"></td>' +
         '<td><input name="regex" type="text"></td>' +
         '<td><input name="compose" type="text"></td>' +
-        '<td><button name="remove" type="submit">X</button></td>';
+        '<td><button name="remove" type="button">X</button></td>';
 
     const inputTitle = tableRow.querySelector('[name=title]');
     const inputRegex = tableRow.querySelector('[name=regex]');
@@ -98,7 +78,7 @@ function addListNode(index, data) {
     inputTitle.setAttribute('name', 'title-' + index);
     inputRegex.setAttribute('name', 'regex-' + index);
     inputCompose.setAttribute('name', 'compose-' + index);
-    removeButton.setAttribute('name', index);
+    removeButton.setAttribute('name', 'remove-' + index);
 
     if (data) {
         inputTitle.setAttribute('value', data.title || '');
@@ -112,27 +92,31 @@ function addListNode(index, data) {
     tableRow = null;
 }
 
-function handleListSubmit(e) {
+function handleListClick(e) {
     e.preventDefault();
 
-    if (e.explicitOriginalTarget.name === 'save') {
-        saveOptions();
-    } else if (e.explicitOriginalTarget.name === 'reset') {
-        resetToFactory();
-    } else if (e.explicitOriginalTarget.name !== '') {
-        removeOption(e.explicitOriginalTarget.name);
+    const elementName = e.target.name.split('-');
+
+    if (elementName[0] === 'save') {
+        br.storage.local.set({ settings });
+    } else if (elementName[0] === 'reset') {
+        settings = JSON.parse(JSON.stringify(examples));
+    } else if (elementName[0] === 'remove') {
+        settings.splice(parseInt(elementName[1]), 1);
+    } else {
+        return false;
     }
 
     renderOptions();
 }
 
 function handleListInput(e) {
-    const [element, index] = e.explicitOriginalTarget.name.split('-');
+    const [element, index] = e.target.name.split('-');
     if (parseInt(index) === settings.length) {
-        settings.push({[element]: e.explicitOriginalTarget.value});
+        settings.push({[element]: e.target.value});
         addListNode(settings.length);
     } else {
-        settings[index][element] = e.explicitOriginalTarget.value;
+        settings[index][element] = e.target.value;
     }
 }
 
@@ -146,12 +130,18 @@ function getTestResult() {
         }
     };
 
-    br.runtime.sendMessage(data).then((response) => {
-        document.getElementById('test-result').innerText = response;
-    });
+    if (br === chrome) {
+        chrome.runtime.sendMessage(data, renderTestResult);
+    } else if (br === browser) {
+        browser.runtime.sendMessage(data).then(renderTestResult);
+    }
+}
+
+function renderTestResult(response) {
+    document.getElementById('test-result').innerText = response;
 }
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
-document.getElementById('list').addEventListener('submit', handleListSubmit);
+document.getElementById('list').addEventListener('click', handleListClick);
 document.getElementById('list-table').addEventListener('input', handleListInput);
 document.getElementById('test').addEventListener('input', getTestResult);

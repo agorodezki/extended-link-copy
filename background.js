@@ -4,6 +4,34 @@ const br = typeof(browser) === 'undefined' ? chrome : browser;
 
 let collection = [];
 
+const examples = [
+    {
+        title: 'Copy just the domain',
+        regex: '.*:\\/\\/.*?\\/',
+        compose: ''
+    },
+    {
+        title: 'Copy url without attributes',
+        regex: '(.*:\\/\\/.*?)(\\?|$)',
+        compose: '${1}'
+    },
+    {
+        title: 'Copy just the attributes',
+        regex: '\\?(.*)',
+        compose: '${1}'
+    },
+    {
+        title: 'Copy revised hyperlink',
+        regex: '(.*:\\/\\/.*?\\/).*',
+        compose: '<a href="${0}">${1}</a>'
+    },
+    {
+        title: 'Copy OXID',
+        regex: 'javascript:top\\.oxid\\.admin\\.editThis\\(\\\'(.*)\\\'\\)',
+        compose: '${1}'
+    }
+];
+
 function sendToTab(data) {
     br.tabs.query({active: true, currentWindow: true}, (tabs) => {
         br.tabs.sendMessage(tabs[0].id, data);
@@ -57,11 +85,24 @@ function getRegexResult(data) {
     return result;
 }
 
+function getSettings(result) {
+    collection = result.settings || JSON.parse(JSON.stringify(examples));
+    createOptions();
+}
+
 br.runtime.onMessage.addListener((request, sender, response) => {
-    if (request.command === 'setting') {
-        collection = request.settings;
-        createOptions();
-    } else if (request.command === 'regex') {
-        response(getRegexResult(request));
+    response(getRegexResult(request));
+});
+
+br.runtime.onInstalled.addListener(() => {
+    if (br === chrome) {
+        chrome.storage.local.get('settings', getSettings);
+    } else if (br === browser) {
+        browser.storage.local.get('settings').then(getSettings);
     }
+});
+
+br.storage.onChanged.addListener((changes) => {
+    collection = changes.settings.newValue;
+    createOptions();
 });
