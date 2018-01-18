@@ -2,34 +2,6 @@
 
 const br = typeof(browser) === 'undefined' ? chrome : browser;
 
-const examples = [
-    {
-        title: 'Copy just the domain',
-        regex: '.*:\\/\\/.*?\\/',
-        compose: ''
-    },
-    {
-        title: 'Copy url without attributes',
-        regex: '(.*:\\/\\/.*?)(\\?|$)',
-        compose: '${1}'
-    },
-    {
-        title: 'Copy just the attributes',
-        regex: '\\?(.*)',
-        compose: '${1}'
-    },
-    {
-        title: 'Copy revised hyperlink',
-        regex: '(.*:\\/\\/.*?\\/).*',
-        compose: '<a href="${0}">${1}</a>'
-    },
-    {
-        title: 'Copy OXID',
-        regex: 'javascript:top\\.oxid\\.admin\\.editThis\\(\\\'(.*)\\\'\\)',
-        compose: '${1}'
-    }
-];
-
 let settings = [];
 
 function restoreOptions() {
@@ -41,7 +13,7 @@ function restoreOptions() {
 }
 
 function getSettings(result) {
-    settings = result.settings || JSON.parse(JSON.stringify(examples));
+    settings = result.settings;
     renderOptions();
 }
 
@@ -95,12 +67,21 @@ function addListNode(index, data) {
 function handleListClick(e) {
     e.preventDefault();
 
+    if (!e.target.name) {
+        return false
+    }
+
     const elementName = e.target.name.split('-');
 
     if (elementName[0] === 'save') {
         br.storage.local.set({ settings });
     } else if (elementName[0] === 'reset') {
-        settings = JSON.parse(JSON.stringify(examples));
+        if (br === chrome) {
+            chrome.runtime.sendMessage({command: 'examples'}, getSettings);
+        } else if (br === browser) {
+            browser.runtime.sendMessage({command: 'examples'}).then(getSettings);
+        }
+        return true;
     } else if (elementName[0] === 'remove') {
         settings.splice(parseInt(elementName[1]), 1);
     } else {

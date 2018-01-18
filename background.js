@@ -86,12 +86,22 @@ function getRegexResult(data) {
 }
 
 function getSettings(result) {
-    collection = result.settings || JSON.parse(JSON.stringify(examples));
+    if (result.settings) {
+        collection = result.settings;
+    } else {
+        collection = JSON.parse(JSON.stringify(examples));
+        br.storage.local.set({settings: collection});
+    }
+
     createOptions();
 }
 
 br.runtime.onMessage.addListener((request, sender, response) => {
-    response(getRegexResult(request));
+    if (request.command === 'regex') {
+        response(getRegexResult(request));
+    } else if (request.command === 'examples') {
+        response({settings: examples});
+    }
 });
 
 br.runtime.onInstalled.addListener(() => {
