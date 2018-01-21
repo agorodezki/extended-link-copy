@@ -4,11 +4,11 @@ const br = typeof(browser) === 'undefined' ? chrome : browser;
 
 let settings = [];
 
-function restoreOptions() {
+function runOnCurrentBrowser(apiFunction, data, promiseBack) {
     if (br === chrome) {
-        chrome.storage.local.get('settings', getSettings);
+        apiFunction(data, promiseBack);
     } else if (br === browser) {
-        browser.storage.local.get('settings').then(getSettings);
+        apiFunction(data).then(promiseBack);
     }
 }
 
@@ -76,11 +76,7 @@ function handleListClick(e) {
     if (elementName[0] === 'save') {
         br.storage.local.set({ settings });
     } else if (elementName[0] === 'reset') {
-        if (br === chrome) {
-            chrome.runtime.sendMessage({command: 'examples'}, getSettings);
-        } else if (br === browser) {
-            browser.runtime.sendMessage({command: 'examples'}).then(getSettings);
-        }
+        runOnCurrentBrowser(br.runtime.sendMessage, {command: 'examples'}, getSettings);
         return true;
     } else if (elementName[0] === 'remove') {
         settings.splice(parseInt(elementName[1]), 1);
@@ -111,18 +107,12 @@ function getTestResult() {
         }
     };
 
-    if (br === chrome) {
-        chrome.runtime.sendMessage(data, renderTestResult);
-    } else if (br === browser) {
-        browser.runtime.sendMessage(data).then(renderTestResult);
-    }
+    runOnCurrentBrowser(br.runtime.sendMessage, data, (response) => {
+        document.getElementById('test-result').innerText = response;
+    });
 }
 
-function renderTestResult(response) {
-    document.getElementById('test-result').innerText = response;
-}
-
-document.addEventListener('DOMContentLoaded', restoreOptions);
+document.addEventListener('DOMContentLoaded', runOnCurrentBrowser(br.storage.local.get, 'settings', getSettings));
 document.getElementById('list').addEventListener('click', handleListClick);
 document.getElementById('list-table').addEventListener('input', handleListInput);
 document.getElementById('test').addEventListener('input', getTestResult);

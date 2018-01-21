@@ -104,7 +104,7 @@ br.runtime.onMessage.addListener((request, sender, response) => {
     }
 });
 
-br.runtime.onInstalled.addListener(() => {
+br.runtime.onStartup.addListener(() => {
     if (br === chrome) {
         chrome.storage.local.get('settings', getSettings);
     } else if (br === browser) {
