@@ -74,7 +74,7 @@ function handleListClick(e) {
     const elementName = e.target.name.split('-');
 
     if (elementName[0] === 'save') {
-        br.storage.local.set({ settings });
+        br.storage.sync.set({ settings });
     } else if (elementName[0] === 'reset') {
         runOnCurrentBrowser(br.runtime.sendMessage, {command: 'examples'}, getSettings);
         return true;
@@ -112,7 +112,7 @@ function getTestResult() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', runOnCurrentBrowser(br.storage.local.get, 'settings', getSettings));
+document.addEventListener('DOMContentLoaded', runOnCurrentBrowser(br.storage.sync.get, 'settings', getSettings));
 document.getElementById('list').addEventListener('click', handleListClick);
 document.getElementById('list-table').addEventListener('input', handleListInput);
 document.getElementById('test').addEventListener('input', getTestResult);

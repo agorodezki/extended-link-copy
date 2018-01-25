@@ -32,6 +32,14 @@ const examples = [
     }
 ];
 
+function runOnCurrentBrowser(apiFunction, data, promiseBack) {
+    if (br === chrome) {
+        apiFunction(data, promiseBack);
+    } else if (br === browser) {
+        apiFunction(data).then(promiseBack);
+    }
+}
+
 function sendToTab(data) {
     br.tabs.query({active: true, currentWindow: true}, (tabs) => {
         br.tabs.sendMessage(tabs[0].id, data);
@@ -85,14 +93,19 @@ function getRegexResult(data) {
     return result;
 }
 
-function getSettings(result) {
+function installSettings(result) {
     if (result.settings) {
         collection = result.settings;
     } else {
         collection = JSON.parse(JSON.stringify(examples));
-        br.storage.local.set({settings: collection});
+        br.storage.sync.set({settings: collection});
     }
 
+    createOptions();
+}
+
+function getSettings(result) {
+    collection = result.settings;
     createOptions();
 }
 
@@ -105,11 +118,11 @@ br.runtime.onMessage.addListener((request, sender, response) => {
 });
 
 br.runtime.onStartup.addListener(() => {
-    if (br === chrome) {
-        chrome.storage.local.get('settings', getSettings);
-    } else if (br === browser) {
-        browser.storage.local.get('settings').then(getSettings);
-    }
+    runOnCurrentBrowser(br.storage.sync.get, 'settings', getSettings);
+});
+
+br.runtime.onInstalled.addListener(() => {
+    runOnCurrentBrowser(br.storage.sync.get, 'settings', installSettings);
 });
 
 br.storage.onChanged.addListener((changes) => {
